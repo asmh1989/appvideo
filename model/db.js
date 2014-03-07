@@ -17,7 +17,7 @@ var DB = {
      * name: 该网站的简称
      */
     saveCategory:function(datas, http, name){
-        require('./website.js')();
+        require('./Website.js')();
         var website = mongoose.model('website');
 
         website.findOne({ address: http }, function (err, doc) {
