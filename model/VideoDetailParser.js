@@ -99,7 +99,7 @@ module.exports = function (href, img, website){
                 var len = content2.qvod.length - 1;
                 if(content2.qvod[len].name === ''){
                     content2.qvod[len].name = text;
-                console.log("finish qvod url = "+content2.qvod[len]);
+                console.log("finish qvod url = "+content2.qvod[len].url);
                 }
             } else if(isabout && is_start){
                 content2.about = text;
@@ -109,7 +109,7 @@ module.exports = function (href, img, website){
 
                 is_userlist = false;
                 if(text.indexOf('QVOD') == -1){
-//                    console.log("found 视频源 === "+text+" 不符合, 不用保存");
+                    console.log("found 视频源 ="+href+" == "+text+" 不符合, 不用保存");
                     isSave = false;
                     is_userlist = true;
                     is_start = false;
