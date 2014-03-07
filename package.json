@@ -1,0 +1,14 @@
+{
+    "name": "app_server",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "start": "node android.js"
+    },
+    "dependencies": {
+        "nodegrass": "*",
+        "htmlparser2": "*",
+        "mongoose":"*",
+        "async":"*"
+    }
+}
