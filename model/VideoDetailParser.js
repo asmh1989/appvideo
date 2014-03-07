@@ -99,7 +99,7 @@ module.exports = function (href, img, website){
                 var len = content2.qvod.length - 1;
                 if(content2.qvod[len].name === ''){
                     content2.qvod[len].name = text;
-                console.log("finish qvod url = "+content2.qvod[len].url);
+                // console.log("finish qvod url = "+content2.qvod[len].url);
                 }
             } else if(isabout && is_start){
                 content2.about = text;
