@@ -3,7 +3,7 @@ var db = require('./db.js');
 var htmlparser = require("htmlparser2");
 var mongoose = require('mongoose');
 
-module.exports = function (href, img, website){
+module.exports = function (href, img, website, callback){
     var ismoveinfo = false;
     var isabout = false;
     var txt = '';
@@ -100,7 +100,7 @@ module.exports = function (href, img, website){
                 var len = content2.qvod.length - 1;
                 if(content2.qvod[len].name === ''){
                     content2.qvod[len].name = text;
-                // console.log("finish qvod url = "+content2.qvod[len].url);
+                    // console.log("finish qvod url = "+content2.qvod[len].url);
                 }
             } else if(isabout && is_start){
                 content2.about = text;
@@ -126,11 +126,13 @@ module.exports = function (href, img, website){
 
 
     db.queryVideoDetail(website.name, href, function(){
-        console.log("now to into callback");
         nodegrass.get(website.address+href, function(data,status,headers){
 
             startParse(parser, data);
             if(!isSave){
+                if(callback){
+                    callback(href);
+                }
                 return;
             }
 //        console.log(content2);

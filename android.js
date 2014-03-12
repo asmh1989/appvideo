@@ -117,6 +117,8 @@ var everythingStart = function(website){
 
 
         //开始下载分类数据
+//        categoryDetailParser(category.unit[category.unit.length-1], website);
+
         async.forEach(category.unit, function(item, callback){
             categoryDetailParser(item, website);
         }, function(err) {

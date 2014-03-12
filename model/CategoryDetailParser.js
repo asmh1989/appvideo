@@ -3,6 +3,8 @@ var db = require('./db.js');
 var htmlparser = require("htmlparser2");
 var mongoose = require('mongoose');
 var async = require('async');
+var videoDetailParser = require('../model/VideoDetailParser.js');
+
 
 
 module.exports = function (category, website){
@@ -21,6 +23,7 @@ module.exports = function (category, website){
     var listVideos = [];
     var is_firstPage = true;
     var pages = 0;
+    var allvideos = [];
 
     function getNewParser(){
         return {
@@ -77,20 +80,17 @@ module.exports = function (category, website){
     }
 
     function startLoadPages(page, finalback){
-        var tmp = website.address+category.href;
-        var location = tmp.lastIndexOf('.');
-        tmp = tmp.substring(0, location)+'_'+page+tmp.substring(location);
-//        console.log('startload page = '+tmp);
-
-        nodegrass.get(tmp, function(data,status,headers){
+        nodegrass.get(page, function(data,status,headers){
             listVideos = new Array;
             video = _video();
             var parser = getNewParser();
             parser.parser.write(data);
             parser.parser.end();
-            console.log('pages = '+tmp+' length= '+listVideos.length);
+            allvideos.push(listVideos);
 
-            db.saveVideos(listVideos, category, website.name, finalback);
+            console.log('pages = '+page+' length= '+listVideos.length);
+
+            db.saveVideos(listVideos.reverse(), category, website.name, finalback);
 
         },null,'gbk').on('error', function(e) {
                 console.log("Got error: " + e.message);
@@ -98,35 +98,73 @@ module.exports = function (category, website){
         );
     }
 
+    function parsePages(loadpages){
+
+        async.mapSeries(loadpages, function(item, callback){
+            startLoadPages(item, function(result){
+                if(!result){
+                    callback('already load');
+                } else {
+                    callback();
+                }
+            });
+
+        }, function(err){
+            console.log('loadpages done err = '+err);
+            for(var i = 0; i < allvideos.length; i++){
+                var datas = allvideos[i];
+                async.forEach(datas, function(item, callback){
+                    videoDetailParser(item.href, item.img,
+                        website, function(notadd){
+                            console.log('will delete ....'+notadd);
+                            db.deleteVideo(website.name, notadd);
+                        });
+                }, function(err){
+                    console.log('分类视频详细信息load完毕');
+                });
+            }
+        });
+    }
+
     // 先解析首页
     nodegrass.get(website.address+category.href, function(data,status,headers){
         var parser = getNewParser();
         parser.parser.write(data);
         parser.parser.end();
+        allvideos.push(listVideos);
 
-        db.saveVideos(listVideos, category, website.name, function(result){
-            console.log('result = '+result+' pages = '+pages+listVideos.length);
-            if(!result){
-            } else{
-                var loadpages = new Array();
-                for (var i = pages - 1; i > 1; i--){
-                    loadpages.push(i);
-                }
-
-                async.mapSeries(loadpages, function(item, callback){
-                    startLoadPages(item, function(result){
-                        if(!result){
-                            callback('already load');
-                        } else {
-                            callback();
+        db.queryVideos(website.name, category.href, function(result){
+            if(!result){         //videos数据库中已存在数据
+                console.log(category.name +' 已有数据')
+                db.saveVideos(listVideos.reverse(), category, website.name, function(result){
+                    console.log('result = '+result+' pages = '+pages+'....'+listVideos.length);
+                    if(!result){
+                    } else{
+                        var loadpages = new Array();
+                        for (var i = 1; i < pages; i++){
+                            var tmp = website.address+category.href;
+                            var location = tmp.lastIndexOf('.');
+                            tmp = tmp.substring(0, location)+'_'+i+tmp.substring(location);
+                            loadpages.push(tmp);
                         }
-                    });
-
-                }, function(err){
-                    console.log('loadpages done err = '+err);
+                        parsePages(loadpages);
+                    }
                 });
+            } else {
+                console.log(category.name+' 中还未有数据,需重新下载');
+                var loadpages = new Array();
+                for (var i = 1; i < pages; i++){
+                    var tmp = website.address+category.href;
+                    var location = tmp.lastIndexOf('.');
+                    tmp = tmp.substring(0, location)+'_'+i+tmp.substring(location);
+                    loadpages.push(tmp);
+                }
+                loadpages.push(website.address+category.href);
+                parsePages(loadpages);
             }
         });
+
+
 
     },null,'gbk').on('error', function(e) {
             console.log("Got error: " + e.message);

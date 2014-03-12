@@ -112,6 +112,13 @@ var DB = {
         });
     },
 
+    /**
+     * 保存分类的视频信息
+     * @param listVideos 视频数据
+     * @param category  分类
+     * @param website   所属网站
+     * @param finalCall  结果回调
+     */
     saveVideos:function(listVideos, category, website, finalCall){
         var videoModel;
         if(videoModels.length > 0){
@@ -146,13 +153,14 @@ var DB = {
                     m.save(function(err){
                         if(err){
                             console.log("save "+item.name+" err :"+err);
+
                         } else {
 //                            console.log("save "+item.name+' successful.');
                         }
                         callback();
                     });
                 } else {
-//                    console.log(website+"----"+item.name + " already exist")
+                    console.log(website+"----"+item.name + " already exist")
                     callback('已经load,不用在执行后面的了');
                     finalCall(false);
                 }
@@ -214,11 +222,17 @@ var DB = {
             if(err){
                 console.log("save "+datas.movieinfo[0]+" err :"+err);
             } else {
-                console.log("save "+datas.movieinfo[0]+" successful.."+err);
+//                console.log("save "+datas.movieinfo[0]+" successful.."+err);
             }
         });
     },
 
+    /**
+     *  查询视频的详细信息是否存在于数据库中
+     * @param website
+     * @param href
+     * @param callback
+     */
     queryVideoDetail:function(website, href, callback){
         var videoDetailModel;
         if(videoDetailModels.length > 0){
@@ -246,7 +260,74 @@ var DB = {
                 console.log(href +"  这个已经存在, 不用添加");
             }
         })
+    },
+
+    /**
+     * 查询视频的分类信息是否存在
+     * @param website
+     * @param href
+     * @param callback
+     */
+    queryVideos:function(website, href, callback){
+        var videoModel;
+        if(videoModels.length > 0){
+            for(var i = 0; i < videoModels.length; i++){
+                if(videoModels[i].name === website){
+                    videoModel = videoModels[i].schema;
+                }
+            }
+        }
+
+        if(!videoModel){
+            require('./VideosSchema.js')(website);
+            videoModel  = mongoose.model(website+'videos');
+            videoModels.push({
+                name:website,
+                schema:videoModel
+            });
+        }
+
+        videoModel.findOne({cat_href:href}, 'href','', function (err, doc) {
+            console.log('queryVideos:cat_href='+href +' doc ='+doc+' err='+err);
+            if (!doc || doc.length == 0) {
+                callback(true);
+            }  else {
+                callback(false);
+            }
+        })
+    },
+
+    /**
+     * 删除不包含qvod链接的视频信息,在XXXvideos数据表中
+     * @param website 该视频信息所属网站
+     * @param href    链接,作为唯一id
+     */
+    deleteVideo:function(website, href){
+        var videoModel;
+        if(videoModels.length > 0){
+            for(var i = 0; i < videoModels.length; i++){
+                if(videoModels[i].name === website){
+                    videoModel = videoModels[i].schema;
+                }
+            }
+        }
+
+        if(!videoModel){
+            require('./VideosSchema.js')(website);
+            videoModel  = mongoose.model(website+'videos');
+            videoModels.push({
+                name:website,
+                schema:videoModel
+            });
+        }
+
+        videoModel.remove({href: href}, function(err){
+            if(err){
+                console.log(deleteVideo+' err = '+err);
+            }
+        })
     }
+
 
 
 }
