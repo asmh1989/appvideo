@@ -5,6 +5,7 @@ var category = require('./model/Category.js');
 var latestVideo = require('./model/LatestRes.js');
 var db = require('./model/db.js');
 var videoDetailParser = require('./model/VideoDetailParser.js');
+var categoryDetailParser = require('./model/CategoryDetailParser.js');
 var settings = require('./config/Settings.js');
 
 var ismenu = false;
@@ -39,9 +40,6 @@ var parser = new htmlparser.Parser({
         }
     },
     onopentagname: function(tagname){
-        if (islatest_video) {
-            // console.log("onopentagname: tagname = "+tagname)
-        };
     },
 
     ontext: function(text){
@@ -97,22 +95,35 @@ var everythingStart = function(website){
 
         db.saveCategory(category.unit, website.address, website.name);
         for (var i = 0; i < latestVideo.length; i++) {
-           var m = latestVideo.get(i);
-           db.saveLatest(m.content, m.name, website.name);
-        };
-        for (var i = 0; i < latestVideo.length; i++) {
             var m = latestVideo.get(i);
-            async.forEach(m.content, function(item, callback) {
-//            console.log('1.1 enter: ' + item.name);
-                videoDetailParser(item.href, item.img, website);
-//            setTimeout(function(){
-////                console.log('1.1 handle: ' + item.name);
-//                callback(null, item.name);
-//            }, 200);
-            }, function(err) {
-                console.log('err: ' + err);
-            });
-        }
+            db.saveLatest(m.content, m.name, website.name);
+        };
+
+
+        //开始下载最新的视频详细页
+//        for (var i = 0; i < latestVideo.length; i++) {
+//            var m = latestVideo.get(i);
+//            async.forEach(m.content, function(item, callback) {
+////            console.log('1.1 enter: ' + item.name);
+//                videoDetailParser(item.href, item.img, website);
+////            setTimeout(function(){
+//////                console.log('1.1 handle: ' + item.name);
+////                callback(null, item.name);
+////            }, 200);
+//            }, function(err) {
+//                console.log('videoDetailParser: err: ' + err);
+//            });
+//        }
+
+
+        //开始下载分类数据
+        async.forEach(category.unit, function(item, callback){
+            categoryDetailParser(item, website);
+        }, function(err) {
+            console.log('categoryDetailParser: err: ' + err);
+        });
+
+
     },null,'gbk').on('error', function(e) {
             console.log("Got error: " + e.message);
         });
@@ -127,15 +138,6 @@ var main = function(){
         everythingStart(website);
     }
 }
-
-//var url = 'http://www.tom51.com/play.htm?38288?5?6??DC6765F783BB3A909646DCEF6BD072A593F05225?%u6D3B%u7740%uFF0C%u6211%u4E0D%u60F3%u8FD9%u6837_BD.rmvb?1';
-//
-//nodegrass.get(url, function(data,status,headers){
-//    console.log(data);
-//},null,'gbk').on('error', function(e) {
-//        console.log("Got error: " + e.message);
-//    });
-
 
 //start
 main();

@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var settings = require('../config/Settings.js');
+var async = require('async');
 
 
 mongoose.connect('mongodb://'+settings.db, function(err){
@@ -7,8 +8,9 @@ mongoose.connect('mongodb://'+settings.db, function(err){
     console.log("connect ...."+settings.db);
 });
 
-var latest;
-var videoDetailModel;
+var latestModels = [];
+var videoModels = [];
+var videoDetailModels = [];
 var DB = {
 
     /**
@@ -53,15 +55,28 @@ var DB = {
      * @param website 该适配所属网站
      */
     saveLatest:function(datas, name, website){
-        if(!latest){
-            require('./LatestSchema.js')(website);
-            latest = mongoose.model(website+'latest');
+        var latestModel;
+        if(latestModels.length > 0){
+            for(var i = 0; i < latestModels.length; i++){
+                if(latestModels[i].name === website){
+                    latestModel = latestModels[i].schema;
+                }
+            }
         }
 
-        latest.findOne({ name: name }, function (err, doc) {
+        if(!latestModel){
+            require('./LatestSchema.js')(website);
+            latestModel  = mongoose.model(website+'latest');
+            latestModels.push({
+                name:website,
+                schema:latestModel
+            });
+        }
+
+        latestModel.findOne({ name: name }, function (err, doc) {
             if (!doc) {
-                console.log(website+"----"+name + " will be added...");
-                var m = new latest;
+//                console.log(website+"----"+name + " will be added...");
+                var m = new latestModel;
                 m.name = name;
                 for (var i = 0; i < datas.length; i++) {
                     var data = datas[i];
@@ -80,7 +95,7 @@ var DB = {
                 });
                 return;
             }
-            console.log(website+"----"+name + " already exist")
+//            console.log(website+"----"+name + " already exist")
             for (var i = 0; i < datas.length; i++) {
                 var data = datas[i];
                 doc.content[i].name = data.name;
@@ -97,15 +112,81 @@ var DB = {
         });
     },
 
+    saveVideos:function(listVideos, category, website, finalCall){
+        var videoModel;
+        if(videoModels.length > 0){
+            for(var i = 0; i < videoModels.length; i++){
+                if(videoModels[i].name === website){
+                    videoModel = videoModels[i].schema;
+                }
+            }
+        }
+
+        if(!videoModel){
+            require('./VideosSchema.js')(website);
+            videoModel  = mongoose.model(website+'videos');
+            videoModels.push({
+                name:website,
+                schema:videoModel
+            });
+        }
+
+        var count = 0;
+
+        async.mapSeries(listVideos, function(item, callback){
+            videoModel.findOne({href: item.href}, function(err, doc){
+                if (!doc) {
+//                    console.log(website+"----"+item.href + " will be added...");
+                    var m = new videoModel;
+                    m.href = item.href;
+                    m.name = item.name;
+                    m.img = item.img;
+                    m.cat_name = category.name;
+                    m.cat_href = category.href;
+                    m.save(function(err){
+                        if(err){
+                            console.log("save "+item.name+" err :"+err);
+                        } else {
+//                            console.log("save "+item.name+' successful.');
+                        }
+                        callback();
+                    });
+                } else {
+//                    console.log(website+"----"+item.name + " already exist")
+                    callback('已经load,不用在执行后面的了');
+                    finalCall(false);
+                }
+            })
+        }, function(err){
+//            console.log("all done  err = "+err);
+            if(err == null){
+                finalCall(true);
+            }
+        });
+    },
+
     /**
      * 保存一个视频内容详情
      * @param datas 视频信息
      * @param website 所属网站
      */
     saveVideoDetail:function(datas, website){
+        var videoDetailModel;
+        if(videoDetailModels.length > 0){
+            for(var i = 0; i < videoDetailModels.length; i++){
+                if(videoDetailModels[i].name === website){
+                    videoDetailModel = videoDetailModels[i].schema;
+                }
+            }
+        }
+
         if(!videoDetailModel){
             require('./OneVideoSchema.js')(website);
-            videoDetailModel = mongoose.model(website+'videoDetail');
+            videoDetailModel  = mongoose.model(website+'videoDetail');
+            videoDetailModels.push({
+                name:website,
+                schema:videoDetailModel
+            });
         }
 
         var m = new videoDetailModel;
@@ -139,9 +220,22 @@ var DB = {
     },
 
     queryVideoDetail:function(website, href, callback){
+        var videoDetailModel;
+        if(videoDetailModels.length > 0){
+            for(var i = 0; i < videoDetailModels.length; i++){
+                if(videoDetailModels[i].name === website){
+                    videoDetailModel = videoDetailModels[i].schema;
+                }
+            }
+        }
+
         if(!videoDetailModel){
             require('./OneVideoSchema.js')(website);
-            videoDetailModel = mongoose.model(website+'videoDetail');
+            videoDetailModel  = mongoose.model(website+'videoDetail');
+            videoDetailModels.push({
+                name:website,
+                schema:videoDetailModel
+            });
         }
 
         videoDetailModel.findOne({ href: href }, function (err, doc) {
@@ -149,10 +243,12 @@ var DB = {
                 console.log(href+"  视频 还不存在, 马上添加");
                 callback();
             }  else {
-            console.log(href +"  这个已经存在, 不用添加");
+                console.log(href +"  这个已经存在, 不用添加");
             }
         })
     }
+
+
 }
 
 module.exports = DB;

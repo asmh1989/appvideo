@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-module.exports = function(web) {
+module.exports = function(dbName) {
   // define schema
 
   var latestvideos = new Schema({
@@ -12,5 +12,5 @@ module.exports = function(web) {
     	href : String
      }]
   });
-  mongoose.model(web+'latest', latestvideos);
+  mongoose.model(dbName+'latest', latestvideos);
 };
