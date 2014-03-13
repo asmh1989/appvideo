@@ -138,7 +138,7 @@ module.exports = function (href, img, website, callback){
 //        console.log(content2);
             content2.img = img;
             content2.href = href;
-            console.log("finish =="+website.address+href+"  .... "+content2.movieinfo);
+//            console.log("finish =="+website.address+href+"  .... "+content2.movieinfo);
             db.saveVideoDetail(content2, website.name);
         },null,'gbk').on('error', function(e) {
                 console.log("Got error: " + e.message);

@@ -57,7 +57,7 @@ module.exports = function (category, website){
                 ontext: function(text){
                     if(is_page && is_start){
                         pages = parseInt(text.substring(1));
-                        console.log(category.name +" 共发现"+text+"页  pages ="+pages);
+//                        console.log(category.name +" 共发现"+text+"页  pages ="+pages);
                         is_firstPage = false;
                         is_page = false;
                     }
@@ -98,9 +98,8 @@ module.exports = function (category, website){
         );
     }
 
-    function parsePages(loadpages){
-
-        async.mapSeries(loadpages, function(item, callback){
+    function parsePages(loadpages, faster){
+        function funcParser(item, callback){
             startLoadPages(item, function(result){
                 if(!result){
                     callback('already load');
@@ -109,7 +108,9 @@ module.exports = function (category, website){
                 }
             });
 
-        }, function(err){
+        };
+
+        function errResult(err){
             console.log('loadpages done err = '+err);
             for(var i = 0; i < allvideos.length; i++){
                 var datas = allvideos[i];
@@ -123,7 +124,16 @@ module.exports = function (category, website){
                     console.log('分类视频详细信息load完毕');
                 });
             }
-        });
+        };
+
+
+        if(faster){
+            console.log('parsePages in faster..');
+            async.forEach(loadpages, funcParser, errResult)
+        } else {
+            console.log('parsePages in normal..');
+            async.mapSeries(loadpages, funcParser, errResult);
+        }
     }
 
     // 先解析首页
@@ -135,10 +145,10 @@ module.exports = function (category, website){
 
         db.queryVideos(website.name, category.href, function(result){
             if(!result){         //videos数据库中已存在数据
-                console.log(category.name +' 已有数据')
-                db.saveVideos(listVideos.reverse(), category, website.name, function(result){
-                    console.log('result = '+result+' pages = '+pages+'....'+listVideos.length);
+//                console.log(category.name +' 已有数据')
+                db.saveVideos(listVideos, category, website.name, function(result){
                     if(!result){
+//                        console.log(category.name+' 数据load完毕')
                     } else{
                         var loadpages = new Array();
                         for (var i = 1; i < pages; i++){
@@ -147,7 +157,7 @@ module.exports = function (category, website){
                             tmp = tmp.substring(0, location)+'_'+i+tmp.substring(location);
                             loadpages.push(tmp);
                         }
-                        parsePages(loadpages);
+                        parsePages(loadpages, false);
                     }
                 });
             } else {
@@ -160,7 +170,7 @@ module.exports = function (category, website){
                     loadpages.push(tmp);
                 }
                 loadpages.push(website.address+category.href);
-                parsePages(loadpages);
+                parsePages(loadpages, false);
             }
         });
 

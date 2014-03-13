@@ -153,14 +153,13 @@ var DB = {
                     m.save(function(err){
                         if(err){
                             console.log("save "+item.name+" err :"+err);
-
                         } else {
 //                            console.log("save "+item.name+' successful.');
                         }
                         callback();
                     });
                 } else {
-                    console.log(website+"----"+item.name + " already exist")
+                    console.log(website+"----category = "+category.name+'  '+item.name + " already exist")
                     callback('已经load,不用在执行后面的了');
                     finalCall(false);
                 }
@@ -257,7 +256,7 @@ var DB = {
                 console.log(href+"  视频 还不存在, 马上添加");
                 callback();
             }  else {
-                console.log(href +"  这个已经存在, 不用添加");
+//                console.log(href +"  这个已经存在, 不用添加");
             }
         })
     },
@@ -288,7 +287,7 @@ var DB = {
         }
 
         videoModel.findOne({cat_href:href}, 'href','', function (err, doc) {
-            console.log('queryVideos:cat_href='+href +' doc ='+doc+' err='+err);
+//            console.log('queryVideos:cat_href='+href +' doc ='+doc+' err='+err);
             if (!doc || doc.length == 0) {
                 callback(true);
             }  else {
@@ -326,6 +325,10 @@ var DB = {
                 console.log(deleteVideo+' err = '+err);
             }
         })
+    },
+
+    disconnect:function(){
+        mongoose.disconnect();
     }
 
 

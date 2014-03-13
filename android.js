@@ -101,19 +101,15 @@ var everythingStart = function(website){
 
 
         //开始下载最新的视频详细页
-//        for (var i = 0; i < latestVideo.length; i++) {
-//            var m = latestVideo.get(i);
-//            async.forEach(m.content, function(item, callback) {
-////            console.log('1.1 enter: ' + item.name);
-//                videoDetailParser(item.href, item.img, website);
-////            setTimeout(function(){
-//////                console.log('1.1 handle: ' + item.name);
-////                callback(null, item.name);
-////            }, 200);
-//            }, function(err) {
-//                console.log('videoDetailParser: err: ' + err);
-//            });
-//        }
+        for (var i = 0; i < latestVideo.length; i++) {
+            var m = latestVideo.get(i);
+            async.forEach(m.content, function(item, callback) {
+//            console.log('1.1 enter: ' + item.name);
+                videoDetailParser(item.href, item.img, website);
+            }, function(err) {
+                console.log('videoDetailParser: err: ' + err);
+            });
+        }
 
 
         //开始下载分类数据
@@ -137,15 +133,29 @@ var everythingStart = function(website){
 
 
 var main = function(){
-    for(var i = 0; i < settings.website.length; i++){
-        var website = settings.website[i];
-        console.log('start download website = '+website.address);
+    async.auto({
+        loadData:function(callback){
+            async.forEach(settings.website, function(item, callback2){
+                console.log('start download website = '+item.address);
+                everythingStart(item);
+                setTimeout(function(){
+                    callback();
+                }, 1000*60*100);
+            }, function(err){
 
-        everythingStart(website);
-    }
+            });
+        },
+        disconnect:['loadData', function(callback){
+            db.disconnect();
+            callback('数据load完毕, 关闭数据库连接');
+        }]
+
+    }, function(err){
+        console.log('err = '+err)
+    });
+
 }
 
 //start
 main();
-
 
