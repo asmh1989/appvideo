@@ -120,7 +120,11 @@ var everythingStart = function(website){
 //        categoryDetailParser(category.unit[category.unit.length-1], website);
 
         async.forEach(category.unit, function(item, callback){
-            categoryDetailParser(item, website);
+            if(item.href === '/'){
+               console.log('首页不需要load了...');
+            } else {
+                categoryDetailParser(item, website);
+            }
         }, function(err) {
             console.log('categoryDetailParser: err: ' + err);
         });
