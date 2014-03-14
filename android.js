@@ -138,16 +138,16 @@ var main = function(){
             async.forEach(settings.website, function(item, callback2){
                 console.log('start download website = '+item.address);
                 everythingStart(item);
-                setTimeout(function(){
-                    callback();
-                }, 1000*60*100);
+//                setTimeout(function(){
+//                    callback();
+//                }, 1000*60*100);
             }, function(err){
 
             });
         },
         disconnect:['loadData', function(callback){
-            db.disconnect();
-            callback('数据load完毕, 关闭数据库连接');
+//            db.disconnect();
+//            callback('数据load完毕, 关闭数据库连接');
         }]
 
     }, function(err){

@@ -110,7 +110,7 @@ module.exports = function (href, img, website, callback){
 
                 is_userlist = false;
                 if(text.indexOf('QVOD') == -1){
-                    console.log("found 视频源 ="+href+" == "+text+" 不符合, 不用保存");
+//                    console.log("found 视频源 ="+href+" == "+text+" 不符合, 不用保存");
                     isSave = false;
                     is_userlist = true;
                     is_start = false;

@@ -253,7 +253,7 @@ var DB = {
 
         videoDetailModel.findOne({ href: href }, function (err, doc) {
             if (!doc) {
-                console.log(href+"  视频 还不存在, 马上添加");
+//                console.log(href+"  视频 还不存在, 马上添加");
                 callback();
             }  else {
 //                console.log(href +"  这个已经存在, 不用添加");

@@ -89,8 +89,11 @@ module.exports = function (category, website){
             allvideos.push(listVideos);
 
             console.log('pages = '+page+' length= '+listVideos.length);
-
-            db.saveVideos(listVideos.reverse(), category, website.name, finalback);
+            if(listVideos.length === 0){
+                finalback(true);
+            } else {
+                db.saveVideos(listVideos.reverse(), category, website.name, finalback);
+            }
 
         },null,'gbk').on('error', function(e) {
                 console.log("Got error: " + e.message);
@@ -151,7 +154,7 @@ module.exports = function (category, website){
 //                        console.log(category.name+' 数据load完毕')
                     } else{
                         var loadpages = new Array();
-                        for (var i = 1; i < pages; i++){
+                        for (var i = pages - 1; i > 0; i--){
                             var tmp = website.address+category.href;
                             var location = tmp.lastIndexOf('.');
                             tmp = tmp.substring(0, location)+'_'+i+tmp.substring(location);
