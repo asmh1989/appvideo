@@ -5,8 +5,6 @@ var mongoose = require('mongoose');
 var async = require('async');
 var videoDetailParser = require('../model/VideoDetailParser.js');
 
-
-
 module.exports = function (category, website){
 
     function _video() {
@@ -96,7 +94,7 @@ module.exports = function (category, website){
             }
 
         },null,'gbk').on('error', function(e) {
-                console.log("Got error: " + e.message);
+                console.log("startLoadPages : Got error: " + e.message);
             }
         );
     }
@@ -124,7 +122,7 @@ module.exports = function (category, website){
                             db.deleteVideo(website.name, notadd);
                         });
                 }, function(err){
-                    console.log('分类视频详细信息load完毕');
+//                    console.log('分类视频详细信息load完毕');
                 });
             }
         };
@@ -134,7 +132,7 @@ module.exports = function (category, website){
             console.log('parsePages in faster..');
             async.forEach(loadpages, funcParser, errResult)
         } else {
-            console.log('parsePages in normal..');
+//            console.log('parsePages in normal..');
             async.mapSeries(loadpages, funcParser, errResult);
         }
     }
@@ -177,10 +175,8 @@ module.exports = function (category, website){
             }
         });
 
-
-
     },null,'gbk').on('error', function(e) {
-            console.log("Got error: " + e.message);
+            console.log("categoryDetailParser: Got error: " + e.message);
         }
     );
 }

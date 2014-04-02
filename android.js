@@ -77,21 +77,6 @@ var startParse = function(p, data){
 var everythingStart = function(website){
     nodegrass.get(website.address, function(data,status,headers){
         startParse(parser, data);
-        // for (var i = 0; i < category.unit.length; i++) {
-        //     var unit = category.unit[i];
-        //     // console.log("name = "+unit.name+" href="+unit.href);
-        // };
-
-        // for (var i = 0; i < latestVideo.movies.content.length; i++) {
-        //     var movies = latestVideo.movies.content[i];
-        //     var tvs = latestVideo.tvs.content[i];
-        //     var car = latestVideo.cartoon.content[i];
-        //     var vars = latestVideo.variety.content[i];
-        //     console.log("movices :"+movies.name+":"+movies.href+":"+movies.img+"\n"+
-        //       "tvs :"+tvs.name+":"+tvs.href+":"+tvs.img+"\n"+
-        //       "car :"+car.name+":"+car.href+":"+car.img+"\n"+
-        //       "vars :"+vars.name+":"+vars.href+":"+vars.img);
-        // };
 
         db.saveCategory(category.unit, website.address, website.name);
         for (var i = 0; i < latestVideo.length; i++) {
@@ -104,7 +89,6 @@ var everythingStart = function(website){
         for (var i = 0; i < latestVideo.length; i++) {
             var m = latestVideo.get(i);
             async.forEach(m.content, function(item, callback) {
-//            console.log('1.1 enter: ' + item.name);
                 videoDetailParser(item.href, item.img, website);
             }, function(err) {
                 console.log('videoDetailParser: err: ' + err);
@@ -117,7 +101,7 @@ var everythingStart = function(website){
 
         async.forEach(category.unit, function(item, callback){
             if(item.href === '/'){
-               console.log('首页不需要load了...');
+                console.log('首页不需要load了...');
             } else {
                 categoryDetailParser(item, website);
             }
@@ -138,9 +122,7 @@ var main = function(){
             async.forEach(settings.website, function(item, callback2){
                 console.log('start download website = '+item.address);
                 everythingStart(item);
-//                setTimeout(function(){
-//                    callback();
-//                }, 1000*60*100);
+
             }, function(err){
 
             });
@@ -153,6 +135,12 @@ var main = function(){
     }, function(err){
         console.log('err = '+err)
     });
+
+    setTimeout(function(){  //每2小时
+        var date = new Date();
+        console.log(date.toString()+"...从新开始..");
+        main();
+    }, 1000*60*60*2);
 
 }
 

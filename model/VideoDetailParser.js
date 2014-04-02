@@ -48,7 +48,6 @@ module.exports = function (href, img, website, callback){
         onopentag: function(name, attribs){
             if(name === "div" && attribs.class === "movie_info"){
                 ismoveinfo = true;
-//            console.log("hello row1");
             } else if(attribs.class === 'urllist'){
                 ismoveinfo = false;
                 is_userlist = true;
@@ -63,7 +62,6 @@ module.exports = function (href, img, website, callback){
         },
         onattribute: function(name, value){
             if(ismoveinfo){
-//            console.log('onattribute: name = '+name+" value = "+value);
                 if(value === 'left'){
                     is_start = true;
                     isPart = false;
@@ -89,7 +87,6 @@ module.exports = function (href, img, website, callback){
 
         ontext: function(text){
             if(ismoveinfo && is_start){
-//            console.log('ontext: text = '+text);
                 if(isPart){
                     txt +=text
                     content2.movieinfo.push(txt);
@@ -100,17 +97,14 @@ module.exports = function (href, img, website, callback){
                 var len = content2.qvod.length - 1;
                 if(content2.qvod[len].name === ''){
                     content2.qvod[len].name = text;
-                    // console.log("finish qvod url = "+content2.qvod[len].url);
                 }
             } else if(isabout && is_start){
                 content2.about = text;
-//            console.log("add about = "+text);
                 isabout = false;
             } else if(is_start && is_userlist){
 
                 is_userlist = false;
                 if(text.indexOf('QVOD') == -1){
-//                    console.log("found 视频源 ="+href+" == "+text+" 不符合, 不用保存");
                     isSave = false;
                     is_userlist = true;
                     is_start = false;
@@ -126,6 +120,7 @@ module.exports = function (href, img, website, callback){
 
 
     db.queryVideoDetail(website.name, href, function(){
+        console.log("queryVideoDetail : "+website.address+href);
         nodegrass.get(website.address+href, function(data,status,headers){
 
             startParse(parser, data);
@@ -135,13 +130,11 @@ module.exports = function (href, img, website, callback){
                 }
                 return;
             }
-//        console.log(content2);
             content2.img = img;
             content2.href = href;
-//            console.log("finish =="+website.address+href+"  .... "+content2.movieinfo);
             db.saveVideoDetail(content2, website.name);
         },null,'gbk').on('error', function(e) {
-                console.log("Got error: " + e.message);
+                console.log("queryVideoDetail : Got error: " + e.message);
             }
         );
     });
