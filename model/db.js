@@ -11,6 +11,7 @@ mongoose.connect('mongodb://'+settings.db, function(err){
 var latestModels = [];
 var videoModels = [];
 var videoDetailModels = [];
+var websiteModel;
 var DB = {
 
     /**
@@ -20,7 +21,11 @@ var DB = {
      */
     saveCategory:function(datas, http, name){
         require('./Website.js')();
-        var website = mongoose.model('website');
+        var website;
+        if(!websiteModel){
+            websiteModel= mongoose.model('website');
+        }
+        website = websiteModel;
 
         website.findOne({ address: http }, function (err, doc) {
             if (!doc) {
